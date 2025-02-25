@@ -4,8 +4,6 @@ services:
   traefik:
     image: "traefik:v3.0"
     container_name: "traefik"
-    extra_hosts:
-     - "host.docker.internal:172.18.0.1"
     networks:
       - web
     ports:
@@ -60,8 +58,6 @@ services:
   mariadb:
     image: bitnami/mariadb:latest
     container_name: "mariadb"
-    extra_hosts:
-     - "host.docker.internal:172.18.0.3"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     volumes:
@@ -72,8 +68,6 @@ services:
   phpmyadmin:
     image: bitnami/phpmyadmin:latest
     container_name: "phpmyadmin"
-    extra_hosts:
-     - "host.docker.internal:172.18.0.4"
     ports:
       - "8082:8080"
       - "8443:8443"
@@ -84,8 +78,6 @@ services:
   qloapps:
     image: webkul/qloapps_docker:latest
     container_name: "qloapps"
-    extra_hosts:
-     - "host.docker.internal:172.18.0.2"
     ports:
       - "2222:22"
       - "3308:3306"
