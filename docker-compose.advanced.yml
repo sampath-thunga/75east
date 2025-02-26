@@ -34,34 +34,35 @@ services:
       # Settle the autentification method to http challenge
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entryPoint=web"
-      #- "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myhttpchallenge.acme.email=sampath.thunga@gmail.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=postmaster@75east.com"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
     labels:
       - "traefik.enable=true"
       - "traefik.port=8080"
       - "traefik.http.routers.traefik.entrypoints=web"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`) || Host(`traefik.corelogix.io`)"
+      - "traefik.http.routers.traefik.rule=Host(`75east.localhost`) || Host(`75east.com`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.localhost`) || Host(`traefik.corelogix.io`)"
+      - "traefik.http.routers.traefik-secure.rule=Host(`75east.localhost`) || Host(`75east.com`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.mydashboard.middlewares=myauth"
       - "traefik.http.middlewares.myauth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" 
     volumes:
-     - /var/folders/letsencrypt:/letsencrypt
+     - /dev/disk/by-id/google-reservation/letsencrypt:/letsencrypt
      - /var/run/docker.sock:/var/run/docker.sock
      #- "./traefik.toml:/traefik.toml"
      #- ./traefik_certs:/certs
      #- ./traefik_conf:/conf
     restart: unless-stopped
+    
   mariadb:
     image: bitnami/mariadb:latest
     container_name: "mariadb"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     volumes:
-    - /var/folders/mariadb_data:/bitnami/mariadb
+    - /dev/disk/by-id/google-reservation/mariadb_data⁠:/bitnami/mariadb
     networks:
       - mysql-network
 
@@ -83,8 +84,7 @@ services:
       - "3308:3306"
       - "1000:80"
     volumes:
-    - /var/folders/qloapp_data:/home/qloapps/www  
-    #- ./ports/ports.conf:/etc/apache2/ports.conf
+    - /dev/disk/by-id/google-reservation/qloapp_data:/home/qloapps/www  
     networks:
       - mysql-network
       - web
@@ -93,9 +93,9 @@ services:
       - "traefik.port=80"
       - "traefik.http.routers.qloapps.entrypoints=web,websecure"
       #- "traefik.http.routers.qloapps.rule=Host(`traefik.localhost`) && PathPrefix(`qloapps`)"
-      - "traefik.http.routers.qloapps.rule=Host(`qloapps.traefik.localhost`) || Host(`qloapps.corelogix.io`)"
+      - "traefik.http.routers.qloapps.rule=Host(`75east.app.localhost`) || Host(`75east.com`)"
       - "traefik.http.routers.qloapps.entrypoints=web"
-      - "traefik.http.routers.qloapps-secure.rule=Host(`qloapps.traefik.localhost`) || Host(`qloapps.corelogix.io`)"
+      - "traefik.http.routers.qloapps-secure.rule=Host(`75east.app.localhost`) || Host(`75east.com``)"
       #- "traefik.http.routers.qloapps-secure.rule=Host(`traefik.localhost`) && PathPrefix(`qloapps`)"
       - "traefik.http.routers.qloapps-secure.entrypoints=websecure"
       - "traefik.http.routers.qloapps-secure.tls=true"
