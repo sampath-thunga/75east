@@ -5,8 +5,10 @@ on:
       - "**"
     tags:
       - "v*"
-  pull_request:
-
+  release:
+    types: [published]
+  pull_request:  
+    
 jobs:
   push_to_registry:
     runs-on: ubuntu-latest
