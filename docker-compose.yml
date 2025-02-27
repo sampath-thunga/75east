@@ -1,74 +1,36 @@
-version: '3.7'
+version: "3"
 services:
-
   traefik:
-    image: "traefik:v3.0"
-    container_name: "traefik"
-    command:
+    image: traefik:v2.3.7
+    command: 
       - --providers.docker
       - --providers.docker.exposedByDefault=false
       - --entrypoints.web.address=:80
-    labels:
-      - "traefik.enable=true"
-      - "traefik.port=8080"
     ports:
       - 80:80
-    networks:
-      - web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    
-default:
-  image: traefik/whoami
-  environment:
-    - WHOAMI_NAME=My Default Server
-  labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.default.rule=Path(`/{path:.*}`)"  
-    
-  mariadb:
-    image: bitnami/mariadb:latest
-    container_name: "mariadb"
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    networks:
-      - mysql-network
 
-  phpmyadmin:
-    image: bitnami/phpmyadmin:latest
-    container_name: "phpmyadmin"
-    ports:
-      - "8082:8080"
-      - "8443:8443"
-    networks:
-      - mysql-network
-
-  
-  qloapps:
-    image: webkul/qloapps_docker:latest
-    container_name: "qloapps"
+  default:
+    image: traefik/whoami
     environment:
       - WHOAMI_NAME=My Default Server
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.server1.rule=Path(`/server1{path:.*}`)"
-    ports:
-      - "2222:22"
-      - "3308:3306"
-      - "1000:80"
-    networks:
-      - mysql-network
-      - web
-    depends_on:
-      - mariadb
-      - traefik
-    restart: unless-stopped  
+      - "traefik.http.routers.default.rule=Path(`/{path:.*}`)"
 
-networks:
-  web:
-    external: true
-  mysql-network:
-    driver: bridge
-    external: false
-  
+  server1:
+    image: traefik/whoami
+    environment:
+      - WHOAMI_NAME=My First Test Server
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server1.rule=Path(`/server1{path:.*}`)"
+
+  server2:
+    image: traefik/whoami
+    environment:
+      - WHOAMI_NAME=My Second Test Server
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server2.rule=Path(`/server2{path:.*}`)"
