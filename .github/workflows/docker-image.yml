@@ -46,7 +46,7 @@ jobs:
       with:
         images: ghcr.io/${{ env.REPO_LC }}
         tags: |
-          #type=sha
+          type=sha
           type=semver,pattern=v{{version}}
           type=semver,pattern=v{{major}}.{{minor}}
           type=semver,pattern=v{{major}}
@@ -58,8 +58,9 @@ jobs:
         context: .
         push: true
         platforms: linux/amd64,linux/arm64
-        tags: ${{ steps.meta.outputs.tags }}
-
+        tags: ${{ steps.docker_meta.outputs.tags }}
+        labels: ${{ steps.docker_meta.outputs.labels }}
+        
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
       with:
