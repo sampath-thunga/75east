@@ -14,11 +14,7 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.watch=true"
-      # Avoid that all containers are exposed
       - "--providers.docker.exposedbydefault=false"
-      #- "--providers.file.directory=/conf/"
-      #- "--providers.file.watch=true"
-      # Settle the ports for the entry points
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -31,51 +27,47 @@ services:
       - "--metrics"
       - "--metrics.prometheus"
       - "--providers.docker.network=web"
-      # Settle the autentification method to http challenge
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entryPoint=web"
-      - "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myhttpchallenge.acme.email=postmaster@75east.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=sampath.thunga@gmail.com"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
     labels:
       - "traefik.enable=true"
       - "traefik.port=8080"
       - "traefik.http.routers.traefik.entrypoints=web"
-      - "traefik.http.routers.traefik.rule=Host(`75east.localhost`) || Host(`75east.com`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_URL}`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik-secure.rule=Host(`75east.localhost`) || Host(`75east.com`)"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.localhost`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.mydashboard.middlewares=myauth"
       - "traefik.http.middlewares.myauth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" 
     volumes:
-     - /dev/disk/by-id/google-reservation/letsencrypt:/letsencrypt
+     - /mnt/disks/letsencrypt:/letsencrypt
      - /var/run/docker.sock:/var/run/docker.sock
-     #- "./traefik.toml:/traefik.toml"
-     #- ./traefik_certs:/certs
-     #- ./traefik_conf:/conf
     restart: unless-stopped
-    
+
   mariadb:
     image: bitnami/mariadb:latest
     container_name: "mariadb"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     volumes:
-    - /dev/disk/by-id/google-reservation/mariadb_data⁠:/bitnami/mariadb
+    - /mnt/disks/mariadb_data:/bitnami/mariadb
     networks:
       - mysql-network
 
   phpmyadmin:
     image: bitnami/phpmyadmin:latest
     container_name: "phpmyadmin"
+    extra_hosts:
+     - "host.docker.internal:172.18.0.4"
     ports:
       - "8082:8080"
       - "8443:8443"
     networks:
       - mysql-network
 
-  
   qloapps:
     image: webkul/qloapps_docker:latest
     container_name: "qloapps"
@@ -84,7 +76,7 @@ services:
       - "3308:3306"
       - "1000:80"
     volumes:
-    - /dev/disk/by-id/google-reservation/qloapp_data:/home/qloapps/www  
+    - /mnt/disks/qloapp_data:/home/qloapps/www  
     networks:
       - mysql-network
       - web
@@ -92,11 +84,9 @@ services:
       - "traefik.enable=true"
       - "traefik.port=80"
       - "traefik.http.routers.qloapps.entrypoints=web,websecure"
-      #- "traefik.http.routers.qloapps.rule=Host(`traefik.localhost`) && PathPrefix(`qloapps`)"
-      - "traefik.http.routers.qloapps.rule=Host(`75east.app.localhost`) || Host(`75east.com`)"
+      - "traefik.http.routers.qloapps.rule=Host(`qloapps.${BASE_URL}`)"
       - "traefik.http.routers.qloapps.entrypoints=web"
-      - "traefik.http.routers.qloapps-secure.rule=Host(`75east.app.localhost`) || Host(`75east.com``)"
-      #- "traefik.http.routers.qloapps-secure.rule=Host(`traefik.localhost`) && PathPrefix(`qloapps`)"
+      - "traefik.http.routers.qloapps-secure.rule=Host(`qloapps.${BASE_URL}`)"
       - "traefik.http.routers.qloapps-secure.entrypoints=websecure"
       - "traefik.http.routers.qloapps-secure.tls=true"
       - "traefik.http.routers.qloapps.tls.certresolver=myhttpchallenge"
@@ -117,4 +107,3 @@ networks:
   mysql-network:
     driver: bridge
     external: false
-  
