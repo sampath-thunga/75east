@@ -1,36 +1,109 @@
-version: "3"
+version: '3.7'
 services:
+
   traefik:
-    image: traefik:v2.3.7
-    command: 
-      - --providers.docker
-      - --providers.docker.exposedByDefault=false
-      - --entrypoints.web.address=:80
+    image: "traefik:v3.0"
+    container_name: "traefik"
+    networks:
+      - web
     ports:
-      - 80:80
+      - "443:443"
+      - "80:80"
+      - "8080:8080" # Don't want this port open (on all hostnames!)
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.watch=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.asDefault=true"
+      - "--entrypoints.websecure.http.tls.certresolver=myhttpchallenge"
+      - "--log.level=INFO"
+      - "--accessLog"
+      - "--api"
+      - "--metrics"
+      - "--metrics.prometheus"
+      - "--providers.docker.network=web"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entryPoint=web"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=sampath.thunga@gmail.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8080"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_URL}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.mydashboard.middlewares=myauth"
+      - "traefik.http.middlewares.myauth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" 
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+     - /mnt/disks/letsencrypt:/letsencrypt
+     - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
-  default:
-    image: traefik/whoami
+  mariadb:
+    image: bitnami/mariadb:latest
+    container_name: "mariadb"
     environment:
-      - WHOAMI_NAME=My Default Server
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+    - /mnt/disks/mariadb_data:/bitnami/mariadb
+    networks:
+      - mysql-network
+
+  phpmyadmin:
+    image: bitnami/phpmyadmin:latest
+    container_name: "phpmyadmin"
+    extra_hosts:
+     - "host.docker.internal:172.18.0.4"
+    ports:
+      - "8082:8080"
+      - "8443:8443"
+    networks:
+      - mysql-network
+
+  qloapps:
+    image: webkul/qloapps_docker:latest
+    container_name: "qloapps"
+    ports:
+      - "2222:22"
+      - "3308:3306"
+      - "1000:80"
+    volumes:
+    - /mnt/disks/qloapp_data:/home/qloapps/www  
+    networks:
+      - mysql-network
+      - web
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.default.rule=Path(`/{path:.*}`)"
+      - "traefik.port=80"
+      - "traefik.http.routers.qloapps.entrypoints=web,websecure"
+      - "traefik.http.routers.qloapps.rule=Host(`qloapps.${BASE_URL}`)"
+      - "traefik.http.routers.qloapps.entrypoints=web"
+      - "traefik.http.routers.qloapps-secure.rule=Host(`qloapps.${BASE_URL}`)"
+      - "traefik.http.routers.qloapps-secure.entrypoints=websecure"
+      - "traefik.http.routers.qloapps-secure.tls=true"
+      - "traefik.http.routers.qloapps.tls.certresolver=myhttpchallenge"
+      - "traefik.http.services.qloapps.loadbalancer.server.port=80"
+    depends_on:
+      - mariadb
+      - traefik
+    restart: unless-stopped  
 
-  server1:
-    image: traefik/whoami
-    environment:
-      - WHOAMI_NAME=My First Test Server
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.server1.rule=Path(`/server1{path:.*}`)"
+volumes: 
+    qloapp_data:
+    mariadb_data:
+    letsencrypt:
 
-  server2:
-    image: traefik/whoami
-    environment:
-      - WHOAMI_NAME=My Second Test Server
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.server2.rule=Path(`/server2{path:.*}`)"
+networks:
+  web:
+    external: true
+  mysql-network:
+    driver: bridge
+    external: false
