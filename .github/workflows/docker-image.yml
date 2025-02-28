@@ -1,4 +1,4 @@
-name: publish-docker-image
+name: publish-docker-image-basic
 on:
   push:
     branches:
