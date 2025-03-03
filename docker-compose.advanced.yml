@@ -62,8 +62,6 @@ services:
   phpmyadmin:
     image: bitnami/phpmyadmin:latest
     container_name: "phpmyadmin"
-    extra_hosts:
-     - "host.docker.internal:172.18.0.4"
     ports:
       - "8082:8080"
       - "8443:8443"
