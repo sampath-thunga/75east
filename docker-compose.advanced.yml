@@ -5,7 +5,7 @@ services:
     image: "traefik:v3.0"
     container_name: "traefik"
     environment:
-      - BASE_URL: ${BASE_URL}
+      - BASE_URL:${BASE_URL}
     networks:
       - web
     ports:
@@ -72,7 +72,7 @@ services:
     image: webkul/qloapps_docker:latest
     container_name: "qloapps"
     environment:
-      - BASE_URL: ${BASE_URL}
+      - BASE_URL:${BASE_URL}
     ports:
       - "2222:22"
       - "3308:3306"
