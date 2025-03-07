@@ -36,7 +36,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.port=8080"
-      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.entrypoints=web,websecure"
       - "traefik.http.routers.traefik.rule=Host(`${BASE_URL}`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik-secure.rule=Host(`${BASE_URL}`)"
