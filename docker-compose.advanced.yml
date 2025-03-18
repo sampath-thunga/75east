@@ -28,6 +28,9 @@ services:
       - "--api"
       - "--metrics"
       - "--metrics.prometheus"
+      - "--entrypoints.websecure.http.middlewares=ratelimit@docker"
+      - "--http.middlewares.ratelimit.ratelimit.average=100"
+      - "--http.middlewares.ratelimit.ratelimit.burst=50"
       - "--providers.docker.network=web"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.tlschallenge=true"
@@ -94,6 +97,8 @@ services:
       - "traefik.http.routers.qloapps-secure.tls=true"
       - "traefik.http.routers.qloapps.tls.certresolver=myhttpchallenge"
       - "traefik.http.services.qloapps.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.qloapps-https.middlewares=redirect-https@docker"
     depends_on:
       - mariadb
       - traefik
