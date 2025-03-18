@@ -38,9 +38,9 @@ services:
       - "traefik.enable=true"
       - "traefik.port=8080"
       - "traefik.http.routers.traefik.entrypoints=web,websecure"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_URL}`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_URL}`) && Path(`/dashboard`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.${BASE_URL}`)"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.${BASE_URL}`) && Path(`/dashboard`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.mydashboard.middlewares=myauth"
@@ -85,7 +85,7 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      #- "traefik.port=80"
+      - "traefik.port=80"
       - "traefik.http.routers.qloapps.entrypoints=web,websecure"
       - "traefik.http.routers.qloapps.rule=Host(`qloapps.${BASE_URL}`)"
       - "traefik.http.routers.qloapps.entrypoints=web"
