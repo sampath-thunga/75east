@@ -11,7 +11,7 @@ services:
     ports:
       - "443:443"
       - "80:80"
-      - "8080:8080" # Don't want this port open (on all hostnames!)
+      #- "8080:8080" # Don't want this port open (on all hostnames!)
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -30,23 +30,24 @@ services:
       - "--metrics.prometheus"
       - "--providers.docker.network=web"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.tlschallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entryPoint=web"
-      - "--certificatesresolvers.myhttpchallenge.acme.email=sampath.thunga@gmail.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=sammy.thunga@gmail.com"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
     labels:
       - "traefik.enable=true"
       - "traefik.port=8080"
       - "traefik.http.routers.traefik.entrypoints=web,websecure"
-      - "traefik.http.routers.traefik.rule=Host(`${BASE_URL}`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_URL}`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik-secure.rule=Host(`${BASE_URL}`)"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.${BASE_URL}`)"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.mydashboard.middlewares=myauth"
       - "traefik.http.middlewares.myauth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" 
     volumes:
        - /mnt/disks/gce-containers-mounts/gce-persistent-disks/reservation/letsencrypt:/letsencrypt
-       - /var/run/docker.sock:/var/run/docker.sock
+       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 
   mariadb:
@@ -84,12 +85,12 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.port=80"
+      #- "traefik.port=80"
       - "traefik.http.routers.qloapps.entrypoints=web,websecure"
       - "traefik.http.routers.qloapps.rule=Host(`qloapps.${BASE_URL}`)"
-      - "traefik.http.routers.qloapps.entrypoints=web"
+      #- "traefik.http.routers.qloapps.entrypoints=web"
       - "traefik.http.routers.qloapps-secure.rule=Host(`qloapps.${BASE_URL}`)"
-      - "traefik.http.routers.qloapps-secure.entrypoints=websecure"
+      #- "traefik.http.routers.qloapps-secure.entrypoints=websecure"
       - "traefik.http.routers.qloapps-secure.tls=true"
       - "traefik.http.routers.qloapps.tls.certresolver=myhttpchallenge"
       - "traefik.http.services.qloapps.loadbalancer.server.port=80"
